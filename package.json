@@ -1,0 +1,22 @@
+{
+  "name": "learn-webpack",
+  "version": "0.0.1",
+  "description": " keeping track of learning webpack",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhatongning/webpacker.git"
+  },
+  "keywords": [
+    "webpack"
+  ],
+  "author": "tony",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zhatongning/webpacker/issues"
+  },
+  "homepage": "https://github.com/zhatongning/webpacker#readme"
+}
