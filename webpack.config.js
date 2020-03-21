@@ -9,10 +9,15 @@ module.exports = {
     print: "./guides/asset_managerment/print.js"
   },
   output: {
-    filename: "[name].bundle.js",
+    filename: "[name].[chunkhash].js",
     path: path.resolve(__dirname, "guides/asset_managerment/dist")
   },
   mode: "none",
+  optimization: {
+    splitChunks: {
+      chunks: "all"
+    }
+  },
   module: {
     rules: [
       {

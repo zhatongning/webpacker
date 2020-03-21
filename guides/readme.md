@@ -28,10 +28,22 @@
 - `clean-webpack-plugin`: 清除文件
 - `webpack-manifest-plugin`: `manifest` 记录了`webpack`打包结果
 
-```json
-{
-  "app.js": "app.bundle.js",
-  "print.js": "print.bundle.js",
-  "index.html": "index.html"
-}
-```
+  ```json
+  {
+    "app.js": "app.bundle.js",
+    "print.js": "print.bundle.js",
+    "index.html": "index.html"
+  }
+  ```
+
+_诗和远方-->_ [runtime 和 manifest 的工作原理](https://github.com/zhatongning/webpacker/issues/2)
+
+:smile: deep-reading
+[long-term-caching-with-webpack](https://medium.com/webpack/predictable-long-term-caching-with-webpack-d3eee1d3fa31)
+
+### development(mode: 'development')
+
+- `sourceMap`: 生成的文件与源文件之间的映射关系，方便调试
+- `webpack --watch`: `webpack`会观察到文件变化，然后重新处理文件，必须手动刷新浏览器才能看到变化。[`packwatch`](https://github.com/webpack/watchpack)是实现`watch`功能的库。
+- [`webpack-dev-server`](https://webpack.js.org/configuration/dev-server/): 启动内建的服务器，通过`devServer`字段配置。
+- `webpack-dev-middleware`: 一个包装器，把`webpack`处理后的文件传递给一个服务器。 `webpack-dev-server`在内部使用了它，`webpack-dev-middleware`也可以作为单独的包来使用，可以配合`express`来定制更多的需求。
