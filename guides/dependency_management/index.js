@@ -4,4 +4,5 @@
 // require with express
 // const sayHi = require("./cm/" + express + `.js`)
 
-console.log(require.context("./cm", false, /\d\.js$/))
+// require with require.context
+// console.log(require.context("./cm", false, /\d\.js$/))
