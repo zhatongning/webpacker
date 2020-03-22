@@ -71,7 +71,7 @@ _诗和远方-->_ [runtime 和 manifest 的工作原理](https://github.com/zhat
 - `output.library`：包名
 - `output.libraryTarget`: 支持的模块类型
 
-### Environment Variables
+### 7.Environment Variables
 
 通过`--env`添加环境变量
 
@@ -97,14 +97,14 @@ module.exports = env => {
 }
 ```
 
-### build performance
+### 8.build performance
 
 - `include,exclude`: 在`loader`中通过`include`字段指定编译的目录，`exclude`排除指定的文件
 - `resolve`配置项
 - `DllPlugin`
 - ...
 
-### Dependency Management
+### 9.Dependency Management
 
 在对模块以表达式方式引入时，会产生`context module`。首先`webpack`会解析表达式，同时形成`id`到模块的映射表，而`context module`在运行时中是可以获取到这种映射关系的，这样就可以动态载入想要的模块.这种动态的方式也会把所有的模块到打包到`bundle`中，而其中就包含你不需要的模块。
 
