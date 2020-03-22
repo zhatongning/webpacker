@@ -108,7 +108,7 @@ module.exports = env => {
 
 在对模块以表达式方式引入时，会产生`context module`。首先`webpack`会解析表达式，同时形成`id`到模块的映射表，而`context module`在运行时中是可以获取到这种映射关系的，这样就可以动态载入想要的模块.这种动态的方式也会把所有的模块到打包到`bundle`中，而其中就包含你不需要的模块。
 
-`dependency_management/index.js`有三种引入`ex`中模块的方式，可以通过比较打包结果来理解这个`context module`概念。
+`dependency_management/index.js`有三种引入`cm`中模块的方式，可以通过比较打包结果来理解这个`context module`概念。
 
 ```shell
   npx webpack guides/dependency_management/index.js --output-path ./guides/dependency_management/dist
@@ -129,7 +129,7 @@ var map = {
   "./2.js": 3,
   "./a.js": 4
 }
-// 导出的context对象
+// 导出的webpackContext对象
 // 将运行时的路径转成对应的moduleId然后找到module
 function webpackContext(req) {
   var id = webpackContextResolve(req)
@@ -141,7 +141,7 @@ function webpackContextResolve(req) {}
 function webpackContextKeys() {}
 ```
 
-`id`为 0 的仍然是入口程序，但是存在一点不一样的地方，刚才的
+`id`为 0 的仍然是入口程序，但是存在一点不一样的地方：
 
 ```javascript
 // 路径
@@ -155,4 +155,4 @@ __webpack_require__(1)("./" + express + ".js") // moduleId为1的是的context m
 
 这种方式跟 2 的方式基本一致，除了这里的正则匹配到的是数字，所以`map`中只有`1.js`和`2.js`。
 
-:smile: 结论： 表示式和`require.context`的方式都能引入`context module`，`context module`的作用就是在编译时建立依赖引入关系，在运行时快速加载依赖。
+:smile: 结论： 表达式和`require.context`的方式都能引入`context module`，`context module`的作用就是在编译时建立依赖引入关系，在运行时快速加载依赖。
