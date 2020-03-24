@@ -156,3 +156,16 @@ __webpack_require__(1)("./" + express + ".js") // moduleId为1的是的context m
 这种方式跟 2 的方式基本一致，除了这里的正则匹配到的是数字，所以`map`中只有`1.js`和`2.js`。
 
 :smile: 结论： 表达式和`require.context`的方式都能引入`context module`，`context module`的作用就是在编译时建立依赖引入关系，在运行时快速加载依赖。
+
+### 10. HOT Module Replacement
+
+- `webpack.config.js`: `devServer.hot = true`
+- `CLI`: `webpack-dev-server --hotOnly`
+- `nodejs`: `new WebpackDevServer(compiler, options)`
+
+:smile: 远方-->[Hot Module Replacement 内部实现原理](https://github.com/zhatongning/webpacker/issues/3)
+
+### tree shaking
+
+推荐阅读：
+[static-module-structure](https://exploringjs.com/es6/ch_modules.html#static-module-structure)
