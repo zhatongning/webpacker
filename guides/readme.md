@@ -62,6 +62,18 @@ _诗和远方-->_ [runtime 和 manifest 的工作原理](https://github.com/zhat
 - `SplitChunksPlugin`:（pre-v4: `CommonsChunkPlugin`）该插件是解决资源共享的第二种方式。
 - 内联函数，`import`、`require.ensure`
 
+#### preload 和 prefetch
+
+```javascript
+import(/* webpackPrefetch: true */ "LoginModal")
+```
+
+==>
+
+```html
+<link rel="prefetch" href="login-modal" />
+```
+
 :smile: deep-reading
 [long-term-caching-with-webpack](https://medium.com/webpack/predictable-long-term-caching-with-webpack-d3eee1d3fa31)
 
@@ -165,7 +177,17 @@ __webpack_require__(1)("./" + express + ".js") // moduleId为1的是的context m
 
 :smile: 远方-->[Hot Module Replacement 内部实现原理](https://github.com/zhatongning/webpacker/issues/3)
 
-### tree shaking
+### 11.tree shaking
 
 推荐阅读：
 [static-module-structure](https://exploringjs.com/es6/ch_modules.html#static-module-structure)
+
+### 12.production
+
+### 13.Lazy Loading
+
+```javascript
+import("path/to/resource").then(module => {
+  // handler
+})
+```

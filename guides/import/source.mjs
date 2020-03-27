@@ -1,0 +1,1 @@
+import( /* webpackChunkName: "target" */ "./target").then(result => console.log(result));

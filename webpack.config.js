@@ -2,46 +2,46 @@ const path = require("path")
 const ManifestPlugin = require("webpack-manifest-plugin")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
 const { CleanWebpackPlugin } = require("clean-webpack-plugin")
-
+console.log(123)
 module.exports = {
-  entry: {
-    app: "./guides/asset_managerment/index.js",
-    print: "./guides/asset_managerment/print.js"
-  },
+  entry: "./source-code-analysis/minimal-example/index.js",
   output: {
-    filename: "[name].[chunkhash].js",
-    path: path.resolve(__dirname, "guides/asset_managerment/dist")
+    filename: "[name].js",
+    library: "my-library",
+    libraryTarget: "commonjs",
+    path: path.resolve(__dirname, "./source-code-analysis/minimal-example/dist")
   },
   mode: "none",
-  optimization: {
-    splitChunks: {
-      chunks: "all"
-    }
-  },
-  module: {
-    rules: [
-      {
-        test: /\.css$/,
-        use: [
-          {
-            loader: path.resolve(__dirname, "_css-loader"),
-            options: { msg: "there" }
-          },
-          "style-loader",
-          "css-loader"
-        ]
-      },
-      {
-        test: /\.(png|svg|jpe?g|gif)$/,
-        use: ["file-loader"]
-      }
-    ]
-  },
+  target: "node",
+  // optimization: {
+  //   splitChunks: {
+  //     chunks: "all"
+  //   }
+  // },
+  // module: {
+  //   rules: [
+  //     {
+  //       test: /\.css$/,
+  //       use: [
+  //         {
+  //           loader: path.resolve(__dirname, "_css-loader"),
+  //           options: { msg: "there" }
+  //         },
+  //         "style-loader",
+  //         "css-loader"
+  //       ]
+  //     },
+  //     {
+  //       test: /\.(png|svg|jpe?g|gif)$/,
+  //       use: ["file-loader"]
+  //     }
+  //   ]
+  // },
   plugins: [
-    new ManifestPlugin(),
-    new CleanWebpackPlugin(),
-    new HtmlWebpackPlugin({
-      title: "Output Management"
-    })
+    // new ManifestPlugin(),
+    new CleanWebpackPlugin()
+    // new HtmlWebpackPlugin({
+    //   title: "Output Management"
+    // })
   ]
 }
