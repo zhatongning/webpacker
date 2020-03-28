@@ -1,16 +1,30 @@
+# 一起学 webapckBootstrap 源码
+
 [minimal example](https://github.com/zhatongning/webpacker/tree/master/source-code-analysis/minimal-example)由这个例子去分析`webpack`的`bootstrap`源码。
+
+首先用一种简单的例子来分析：
 
 ```javascript
 // input.js
-import { msg } from "./output"
-console.log(msg)
+import * as output from "./exports.js"
+console.log(output.msg)
+console.log(output.default)
 
-// output.js
-exports.msg = "hello webpack"
+// exports.js
+const defaultMsg = "default"
+const msg = "msg"
+export { msg }
+export default defaultMsg
 ```
 
-```s
-  npx webpack source-code-analysis/minimal-example/index.js -o source-code-analysis/minimal-example/dist/main.js --mode none
+```javascript
+  // 用webpack的v4去打包 然后执行
+  npx webpack --config .source-code-analysis/minimal-example/webpack.config.js
+
+  node main.js
+  // 输出
+  // msg
+  // defaultMsg
 ```
 
 先看简单的例子，通过上面的命令，打出的文件。。。[这个是打包之后的文件](https://github.com/zhatongning/webpacker/tree/master/source-code-analysis/minimal-example/example-1-main.js)
@@ -20,52 +34,65 @@ exports.msg = "hello webpack"
 - `webpackBootstrap`部分
 - 模块部分
 
-##### 1.1 结构
+#### 2 结构
 
 整体结构是一个`IIFE`，
 
 ```javascript
-;(function(modules) {
+;(function webpackBootstrap(modules) {
   // 这里是webpack引导程序
 })([module1, module2])
 ```
 
-这里的`module1`，`module2`就是我们打包之前的文件，在这个例子里就是[index.js](https://github.com/zhatongning/webpacker/tree/master/source-code-analysis/minimal-example/index.js)，[output.js](https://github.com/zhatongning/webpacker/tree/master/source-code-analysis/minimal-example/output.js)文件里经过`webpack`处理之后的内容。
+调用了`webpackBootstrap`函数，接受模块数组作为参数。
 
-##### 1.2 模块部分
+这里的`module1`，`module2`就是我们打包之前的文件，在这个例子里就是[index.js](https://github.com/zhatongning/webpacker/tree/master/source-code-analysis/minimal-example/index.js)，[exports.js](https://github.com/zhatongning/webpacker/tree/master/source-code-analysis/minimal-example/exports.js)文件里经过`webpack`处理之后的内容。
 
-`modules`数组的第一项：
+#### 3. `webpackBootStrap`
+
+简化一下该部分：
 
 ```javascript
-// 0和1的结构很相似
+  var installedModules = {};
+  function __webpack_require__() {}
+  __webpack_require__.[函数名] = function() {}
+  return __webpack_require__(0)
+```
 
+这么看来，该部分只做了三件事
+
+- 定义`installedModules`对象，在`__webpack_require__`中使用
+- 定义了`__webpack_require__`函数，然后在`__webpack_require__`上定义了很多的功能函数
+- 启动程序
+
+单独看`__webpack_require__`的代码比较抽象，沿着执行顺序来看或许更容易理解一些。
+
+在那之前，简单看下模块部分。
+
+:smile: 扩展阅读
+[缩写的函数名参照表](https://github.com/webpack/webpack/blob/master/lib/RuntimeGlobals.js)
+
+#### 4 分析（一）
+
+下面是`module[0]`的代码：
+
+```javascript
 /* 0 */
-/***/ ;(function(module, __webpack_exports__, __webpack_require__) {
-  "use strict"
-  __webpack_require__.r(__webpack_exports__)
-  /* harmony import */ var _output__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(
-    1
-  )
-  console.log(_output__WEBPACK_IMPORTED_MODULE_0__["msg"])
-  /***/
+;(function(module, exports, __webpack_require__) {
+  const output = __webpack_require__(1)
+  console.log(output.msg)
+  console.log(output.default)
 })
 ```
 
-- **首先 Modules 数组里的每一项都是一个匿名函数，我们在下面简称模块函数。**这个函数接受`module, __webpack_exports__, __webpack_require__`三个参数。下面会讲这三个参数是怎么来的，以及每个参数的含义。
-- `/* 0 */ /* 1 */`，表示`modules`的索引，同时也是`moduleId`，之后模块之间的引用依赖这个 id，比如 0 模块对 1 的引用，`__webpack_require__(1)`实现的
+模块数组的每一项都是一个类似的函数表达式，该函数接受三个参数`module, __webpack_exports__, __webpack_require__`。至于这三个参数都是做什么的，:laugh: 不要急，马上就知道。
 
-##### 1.3 bootstrap
+#### 5. 由`__webpack_require__(__webpack_require__.s = 0)`开始
 
-`installedModules={}`，这个对象是用来管理模块缓存的，记录已经加载过的模块。
+1. 入口函数
+   `__webpack_require__.s = 0`这条赋值语句执行完之后返回 0，那么实际执行的就是`__webpack_require__(0)`。接着看`__webpack_require__`函数
 
-之后的代码只做了二件事，1.声明函数`__webpack_require__`，2.给这个函数添加属性和方法。然后我们通过执行顺序来理解这段代码：
-
-1.入口函数
-`__webpack_require__(__webpack_require__.s = 0)`
-
-`__webpack_require__.s = 0`这条赋值语句执行完之后返回 0，那么实际执行的就是`__webpack_require__(0)`。接着看`__webpack_require__`函数
-
-2.\***\*webpack_require\*\***函数
+2. `__webpack_require__`函数
 
 ```javascript
 function __webpack_require__(moduleId) {
@@ -89,32 +116,42 @@ function __webpack_require__(moduleId) {
 ```
 
 - `__webpack_require__`函数接受`moduleId`作为参数
-- 如果这个模块`id`在`installedModules`已经注册过直接返回使用，如果没有的话就注册。这里注册的是经过封装之后的模块：`module = { i: moduleId, l: false, exports: {} }`
+- 如果这个模块`id`在`installedModules`已经存在即返回对应模块，如果没有的话就注册。这里注册的是经过封装之后的模块：`module = { i: moduleId, l: false, exports: {} }`
   - `module.i`: 标识 id，其实就是所在`modules`数组的索引
-  - `module.l`: 暂时还未知
-  - `module.exports`: 当前模块导出的参数，跟`cjs`的意义一样
-- 从这里我们知道，每个模块函数接受的三个参数分别为: `module`->通过`webpack`注册之后的当前模块，`module.exports`->为当前模块导出的内容，`__webpack_require__`就是当前的这个核心方法。
+  - `module.l`: `loaded`的缩写，是否已加载
+  - `module.exports`: 当前模块导出，跟`cjs`中的意义一样
 
-当然，`__webpack_require__(0)`执行之后，`installedModules`会变成
+**从这里我们知道，每个模块函数接受的三个参数分别为: `module`->通过`webpack`注册之后的当前模块，`module.exports`->为当前模块导出的内容，`__webpack_require__`就是当前的这个核心方法。**
 
-```javascript
-installedModules = {
-  0: {
-    i: 0,
-    l: false,
-    exports: {}
-  }
-}
-```
+3. `modules[0].call()`执行
 
-1. `modules[moduleId]`执行
+上面说过，每个模块都是一个函数，这里调用了模块 0 函数。
 
-需要回到`moduleId`为 0 的 module 中。
+`const output = __webpack_require__(1)`
+
+模块 0 这里又用`__webpack_require__`调用了模块 1，那么模块也会执行到`modules[1].call()`，那么看下模块 1：
 
 ```javascript
-__webpack_require__.r(__webpack_exports__)
-)
+/* 1 */
+/***/ ;(function(module, __webpack_exports__, __webpack_require__) {
+  "use strict"
+  __webpack_require__.r(__webpack_exports__)
+  /* harmony export (binding) */ __webpack_require__.d(
+    __webpack_exports__,
+    "msg",
+    function() {
+      return msg
+    }
+  )
+  const defaultMsg = "defaultMsg"
+  const msg = "msg"
+  /* harmony default export */ __webpack_exports__["default"] = defaultMsg
+})
 ```
+
+4. `__webpack_require__.r(__webpack_exports__)`
+
+上面已经分析过`__webpack_exports__`就是封装之后的导出模块。
 
 ```javascript
 __webpack_require__.r = function(exports) {
@@ -125,22 +162,26 @@ __webpack_require__.r = function(exports) {
 }
 ```
 
-这里的意思是，如果浏览器支持`Symbol.toStringTag`就给`exports`定义`Module`类型，如果不支持的话，就设置`__esModule`属性为`true`来标识来自于`mjs`。
+这里的意思是，如果浏览器支持`Symbol.toStringTag`就给`exports`定义`Module`类型，如果不支持的话，就设置`__esModule`属性为`true`来标识来自于`mjs`。如果当前模块为`esModule`，都会使用`__webpack_require__.r`函数标识当前模块。这样做是为了区别于`commonjs`等其他模块方式，因为他们在打包时会被特殊(default)处理。（见下面的分析。）
 
 关于`Sysbol.toStringTag`
 [阮一峰的 es6 教程](https://es6.ruanyifeng.com/#docs/symbol#Symbol-toStringTag)
 
-```javascript
-var _output__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1)
-```
+5. `__webpack_require__.d()`
 
-这里`__webpack_require__(1)`根据上面的分析知道这个是引入`moduleId`为 1 的模块。那么先这个模块：
+通过`defineProperty`给模块定义为可枚举存储器属性，同时设置`getter`，
 
 ```javascript
-exports.msg = "hello webpack"
+__webpack_require__.d(__webpack_exports__, "msg", function() {
+  return msg
+})
 ```
 
-那么当前的`installedModules`:
+这里就是给该模块定了`msg`的`getter`
+
+`__webpack_exports__["default"] = defaultMsg`就是给模块定了`default`属性的值为变量`defaultMsg`的值
+
+当`modules[1].call()`，`__webpack_require__(1)`执行完时，
 
 ```javascript
 installedModules = {
@@ -151,24 +192,58 @@ installedModules = {
   },
   1: {
     i: 1,
-    l: true, // 表明模块已经加载完
+    l: true,
     exports: {
-      msg: "hello webpack"
+      msg: {
+        enumberable: true,
+        get: function() {
+          return msg
+        }
+      },
+      default: "defaultMsg"
     }
   }
 }
 ```
 
-注意`__webpack_require__`函数的返回值为`module.exports`，所以这里的变量`_output__WEBPACK_IMPORTED_MODULE_0__`是对`{msg: "hello webpack" }`的引用。
+`__webpack_require__`函数的返回值为`module.exports`，所以当`__webpack_require__(1)`执行结束时，`module0`中的`_exports_js__WEBPACK_IMPORTED_MODULE_0__`存了`installedModules[1].exports`的这个引用。
 
-模块 1 就这么多内容，接着分析模块 0 的下一句
+等到`__webpack_require__(1)`执行结束`installedModules[0].l`置为`true`。
+
+#### 6 mjs 与 cjs 的引用
 
 ```javascript
-  var _output__WEBPACK_IMPORTED_MODULE_0___default = __webpack_require__.n(
-  _output__WEBPACK_IMPORTED_MODULE_0__
+// 将exports.js改成用commonjs的导出方式
+exports.msg = msg
+exports.default = defaultMsg
 ```
 
-首先看下`__webpack_require__.n`是什么鬼？
+改完之后重现打包，重新执行一下
+
+```javascript
+  "msg"
+  { msg: 'msg', default: 'default' }
+```
+
+[这个是打包之后的文件](https://github.com/zhatongning/webpacker/tree/master/source-code-analysis/minimal-example/example-2-main.js)
+
+#### 7.变形分析（二）
+
+`module1`的代码与上部分的代码几乎没有变化。直接看`module0`。
+
+1.首先还是`__webpack_require__.r`标识
+
+2.接着同样的调用`__webpack_require__(1)`同时赋值给`_exports_js__WEBPACK_IMPORTED_MODULE_0__`
+
+3.第三句就不一样了
+
+```javascript
+var _exports_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/ __webpack_require__.n(
+  _exports_js__WEBPACK_IMPORTED_MODULE_0__
+)
+```
+
+这里的`__webpack_require__.n`函数是个什么鬼？
 
 ```javascript
 __webpack_require__.n = function(module) {
@@ -185,24 +260,12 @@ __webpack_require__.n = function(module) {
 }
 ```
 
-首先定义了一个`getter`function，当模块为`esModule`时，该函数的返回值为`module`的`default`属性值，否则就返回`module`。实际就是对非 esModule 的兼容处理。
-然后调用`__webpack_require__.d`函数：
+首先定义了一个`getter`函数，当模块为`esModule`时，该函数的返回值为`module`的`default`属性值，否则就返回`module`。
+
+然后调用`__webpack_require__.d`。整合并简化一下，其实就是下面的代码：
 
 ```javascript
-__webpack_require__.d = function(exports, name, getter) {
-  // __webpack_require__.o其实就是Object.prototype.hasOwnProperty.call(object, property)，判断对象是否包含某个属性
-  if (!__webpack_require__.o(exports, name)) {
-    Object.defineProperty(exports, name, { enumerable: true, get: getter })
-  }
-}
-```
-
-首先判断`getter`中是否有`a`属性，然后将`a`属性定义为存储器属性,并且当前模块的`esModule`为`true`即为`esModule`时返回引入模块的`default`属性值，非 `esModule`时返回整个模块。
-
-整合并简化一下，其实就是下面的代码
-
-```javascript
-  // __webpack_require__.n返回getter
+  // __webpack_require__.n(module)返回getter
   var getter = {
     a: {
       enumerable: true
@@ -211,19 +274,65 @@ __webpack_require__.d = function(exports, name, getter) {
   }
 ```
 
-所以`_output__WEBPACK_IMPORTED_MODULE_0___default`就是这个`getter`，`_output__WEBPACK_IMPORTED_MODULE_0___default.a`就是模块的默认导出。
+所以`_exports_js__WEBPACK_IMPORTED_MODULE_0___default`就是这个`getter`，
 
-关于不同模块规范之间的导入：
-[webpack-4-import-and-commonjs](https://medium.com/webpack/webpack-4-import-and-commonjs-d619d626b655)
+因为`_exports_js__WEBPACK_IMPORTED_MODULE_0__`为非`esModule`，那么这里的`_exports_js__WEBPACK_IMPORTED_MODULE_0___default.a`就为传入的参数`module`即`_exports_js__WEBPACK_IMPORTED_MODULE_0__`的引用`{ msg: 'msg', default: 'default' }`
 
-#### 2.稍微复杂一些的情况
+---
 
-```s
-  npx webpack source-code-analysis/minimal-example/entry.js -o source-code-analysis/minimal-example/dist/main.js --mode none
+APPENDIX
+
+下面是`cjs`与`mjs`相互打包之后，输出的结果：
+
+```JavaScript
+  // 导出
+  // 变量： msg = 'msg'
+  // 默认值： defaultMsg = 'default'
+
+  // 导入：整个模块导入module
+  // 打印module.msg和module.default
 ```
 
-[这个是打包出来的 main 文件](https://github.com/zhatongning/webpacker/tree/master/source-code-analysis/minimal-example/example-2-main.js)
+- 导入：`mjs`, 导出：`mjs`
 
-因为很多代码跟上面的例子是类似，只分析不同的地方或者上面没有分析过得地方。
+```JavaScript
+// 输出结果
+"msg"
+"default"
+```
 
-先看`module1`（之前的`module0`）: 这里跟之前有很大的差别
+- 导入：`mjs`, 导出：`cjs`
+
+  - 导出中没有`_esModule`标志
+
+  ```JavaScript
+  // 输出结果
+  "msg"
+  { msg: 'msg', default: 'default' }
+  ```
+
+  - 导出中有`_esModule`标志
+
+  ```JavaScript
+  // 输出结果
+  "msg"
+  "default"
+  ```
+
+- 导入：`cjs`, 导出：`cjs`
+
+  ```JavaScript
+  // 输出结果
+  "msg"
+  "default"
+  ```
+
+- 导入：`cjs`, 导出：`mjs`
+
+  ```JavaScript
+  // 输出结果
+  "msg"
+  "default"
+  ```
+
+从上面的例子可以看出，当`mjs`模块去引用`commonjs`模块且没有`__esModule`标志时，`webpack`会做特殊的包装，将所有的导出都封装进一个对象，同时作为 module 的 default 属性的值来导出。
