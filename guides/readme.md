@@ -1,5 +1,7 @@
 ## [guides](https://webpack.js.org/guides/getting-started/)
 
+> 版本 webpack: v5.0.0-beta.14
+
 ### 1.getting start
 
 首先揭示了之前用`script`标签的方式引入脚本和依赖的问题：比如不能直观地知道当前脚本依赖了什么库，依赖之间还可能有依赖先后关系，引入但是没有使用的库也会被下载。
