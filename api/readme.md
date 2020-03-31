@@ -33,3 +33,29 @@ module: {
     console.log(`I'm a loader for transforming the special arrow function`)
   }
 ```
+
+- `this`
+
+  通过`return`的方式不灵活，最主要的是，处理不了异步操作。`webpack`给当前 loader 的`this`注册了很多属性。
+
+  - this.callback()
+
+  ```JavaScript
+    this.callback(null, content) // 跟return content是一样的效果
+  ```
+
+  但是如果有异步操作的话,`return`就无能为力了
+
+  - this.async()
+
+  ```javascript
+  let callback = this.sync()
+  someAsyncOperation(content, function(err, result) {
+    if (err) return callback(err)
+    callback(null, result, map, meta)
+  })
+  ```
+
+  - this.loaders
+
+  可以找到 loader 的信息，比如配置选项 options 等
