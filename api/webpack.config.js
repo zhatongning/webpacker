@@ -8,6 +8,7 @@ module.exports = {
     path: path.resolve(__dirname, "dist")
   },
   mode: "none",
+  target: "node",
   module: {
     rules: [
       {
