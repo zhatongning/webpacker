@@ -1,4 +1,4 @@
-- [x] [实现一个小 loader，完成特殊箭头函数的转化](./api/special-arrow-function-loader.js)
+- [x] [实现一个小 loader，完成特殊箭头函数的转化](./special-arrow-function-loader.js)
 - [ ] 实现一个小插件，在文件上添加注释
 
 #### loader 实现
@@ -36,7 +36,7 @@ module: {
 
 - `this`
 
-  通过`return`的方式不灵活，最主要的是，处理不了异步操作。`webpack`给当前 loader 的`this`注册了很多属性。
+  通过`return`的方式不灵活，最主要的是，处理不了异步操作。`webpack`给当前 loader 处理函数的`this`注册了很多属性。
 
   - this.callback()
 
